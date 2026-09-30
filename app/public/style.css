@@ -1,0 +1,235 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+:root {
+    --bg-main: #08080c;
+    --bg-card: #0f1016;
+    --accent-neon: #00ffaa;
+    --accent-glow: rgba(0, 255, 170, 0.25);
+    --border-color: #222533;
+    --text-primary: #ffffff;
+    --text-muted: #6b7280;
+}
+
+body {
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: var(--bg-main);
+    color: var(--text-primary);
+    position: relative;
+    overflow-x: hidden;
+}
+
+/* Футуристичный фоновый паттерн в виде цифровой сетки */
+body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: 
+        linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+    background-size: 32px 32px;
+    background-position: center;
+    pointer-events: none;
+    mask-image: radial-gradient(circle at 50% 50%, black 40%, transparent 90%);
+    -webkit-mask-image: radial-gradient(circle at 50% 50%, black 40%, transparent 90%);
+}
+
+main {
+    position: relative;
+    width: 100%;
+    max-width: 440px;
+    padding: 40px 32px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    box-shadow: 
+        0 20px 40px -15px rgba(0, 0, 0, 0.7),
+        0 0 0 1px rgba(255, 255, 255, 0.02);
+}
+
+/* Декоративный индикатор "активной системы" сверху карточки */
+main::before {
+    content: 'SYS // ONLINE';
+    position: absolute;
+    top: 14px;
+    right: 20px;
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    color: var(--accent-neon);
+    opacity: 0.8;
+}
+
+h1 {
+    font-size: 1.75rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    text-align: left;
+    margin-bottom: 32px;
+    color: var(--text-primary);
+}
+
+h1::after {
+    content: '';
+    display: block;
+    width: 40px;
+    height: 4px;
+    background: var(--accent-neon);
+    margin-top: 12px;
+    box-shadow: 0 0 12px var(--accent-glow);
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+label {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+
+input,
+textarea {
+    font: inherit;
+    font-size: 0.95rem;
+    padding: 14px 16px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.02);
+    color: var(--text-primary);
+    outline: none;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+input::placeholder,
+textarea::placeholder {
+    color: rgba(255, 255, 255, 0.15);
+}
+
+input:focus,
+textarea:focus {
+    background: rgba(0, 255, 170, 0.02);
+    border-color: var(--accent-neon);
+    box-shadow: 0 0 0 4px var(--accent-glow);
+}
+
+textarea {
+    resize: vertical;
+    min-height: 100px;
+    line-height: 1.5;
+}
+
+button {
+    margin-top: 8px;
+    padding: 16px;
+    font: inherit;
+    font-size: 0.9rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: #000000;
+    background: var(--accent-neon);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 12px var(--accent-glow);
+}
+
+button::before {
+    display: none; /* Отключаем старый блик */
+}
+
+button:hover {
+    background: #00e699;
+    box-shadow: 0 6px 20px rgba(0, 255, 170, 0.4);
+    transform: translateY(-1px);
+}
+
+button:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 8px var(--accent-glow);
+}
+
+a {
+    text-decoration: none;
+    color: black;
+}
+
+#status {
+    margin-top: 12px;
+    text-align: center;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--accent-neon);
+    min-height: 1.2em;
+}
+
+/* Новый цифровой "штамп" подтверждения статуса */
+#status:not(:empty)::before {
+    content: attr(data-text);
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 1.5rem;
+    font-weight: 900;
+    letter-spacing: 0.15em;
+    color: var(--accent-neon);
+    background: var(--bg-card);
+    border: 2px solid var(--accent-neon);
+    border-radius: 8px;
+    padding: 18px 36px;
+    box-shadow: 
+        0 0 50px rgba(0, 0, 0, 0.8),
+        0 0 30px var(--accent-glow);
+    opacity: 0;
+    pointer-events: none;
+    animation: digitalReady 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes digitalReady {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -40%) scale(0.92);
+    }
+    100% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+}
+
+/* Стилизация автозаполнения под новую тему */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus {
+    -webkit-text-fill-color: var(--text-primary);
+    -webkit-box-shadow: 0 0 0 1000px var(--bg-card) inset;
+    box-shadow: 0 0 0 1000px var(--bg-card) inset;
+    caret-color: var(--text-primary);
+}
+
+input,
+textarea {
+    -webkit-tap-highlight-color: transparent;
+}

@@ -1,0 +1,52 @@
+services:
+    web-app:
+        build: ./app
+        container_name: web-app
+        ports:
+            - '3000:3000'
+        depends_on:
+            - database
+            - postgres
+            - redis
+
+    database:
+        build: ./database
+        container_name: database
+        ports:
+            - '4000:4000'
+        depends_on:
+            postgres:
+                condition: service_started
+
+    postgres:
+        image: postgres:17
+        container_name: postgres
+        environment:
+            POSTGRES_DB: requests
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: postgres
+        ports:
+            - '5455:5432'
+        volumes:
+            - postgres_data:/var/lib/postgresql/data
+            - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+    redis:
+        image: redis:7-alpine
+        container_name: redis
+        ports:
+            - '6379:6379'
+        volumes:
+            - redis_data:/data
+        command: ["redis-server", "--appendonly", "yes"]
+
+    test:
+        build: ./test
+        container_name: test
+        depends_on:
+            - web-app
+            - postgres
+
+volumes:
+    postgres_data:
+    redis_data:

@@ -1,0 +1,497 @@
+<!doctype html>
+<html lang="ru">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Угадай ID — бинарный поиск</title>
+        <style>
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+:root {
+    --bg-main: #060713;
+    --bg-card: rgba(15, 18, 36, 0.85);
+    --accent-cyan: #00f0ff;
+    --accent-glow: rgba(0, 240, 255, 0.25);
+    --border-color: rgba(0, 240, 255, 0.15);
+    --text-primary: #f0f3ff;
+    --text-muted: #7e89a9;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: var(--bg-main);
+    color: var(--text-primary);
+    position: relative;
+    overflow: hidden;
+}
+
+body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: 
+        linear-gradient(to right, rgba(0, 240, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(0, 240, 255, 0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    background-position: center;
+    pointer-events: none;
+    animation: flicker 6s ease-in-out infinite alternate;
+}
+
+@keyframes flicker {
+    0% {
+        opacity: 0.85;
+    }
+    50% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0.9;
+    }
+}
+
+.card {
+    position: relative;
+    width: 100%;
+    max-width: 520px;
+    padding: 46px 38px 38px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow:
+        0 20px 50px rgba(0, 0, 0, 0.5),
+        inset 0 1px 1px rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+}
+
+.card::before {
+    content: 'CORE // BINARY_SEARCH_OS';
+    position: absolute;
+    top: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: inherit;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    color: var(--accent-cyan);
+    opacity: 0.8;
+}
+
+h1 {
+    font-size: 1.6rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    text-align: center;
+    margin-bottom: 12px;
+    color: #fff;
+    text-shadow: 0 0 20px var(--accent-glow);
+}
+
+h1::after {
+    content: '';
+    display: block;
+    width: 60px;
+    height: 3px;
+    background: var(--accent-cyan);
+    margin: 14px auto 26px auto;
+    box-shadow: 0 0 10px var(--accent-glow);
+}
+
+p {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: var(--text-muted);
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+p b {
+    color: var(--accent-cyan);
+    font-style: normal;
+    font-weight: 600;
+}
+
+code {
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: 700;
+    color: #fff;
+    background: rgba(0, 240, 255, 0.1);
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1px solid rgba(0, 240, 255, 0.2);
+}
+
+button {
+    width: 100%;
+    font: inherit;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 14px 26px; 
+    color: #000000;
+    background: var(--accent-cyan);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.2s ease-in-out;
+    box-shadow: 0 4px 14px var(--accent-glow);
+    margin-bottom: 1vh;
+}
+
+button::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.35),
+        transparent
+    );
+    transform: translateX(-100%);
+    transition: transform 0.5s ease;
+}
+
+button:hover {
+    color: #000000;
+    background: #40f6ff;
+    box-shadow: 0 6px 20px rgba(0, 240, 255, 0.45);
+}
+
+button:hover::before {
+    transform: translateX(100%);
+}
+
+button:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 8px var(--accent-glow);
+}
+
+#start {
+    text-align: center;
+    margin-top: 10px;
+}
+
+#start button {
+    padding: 16px 42px;
+}
+
+.progress {
+    text-align: center;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 22px;
+}
+
+.progress span {
+    color: var(--accent-cyan);
+    font-weight: 700;
+}
+
+.question {
+    text-align: center;
+    font-size: 1.2rem;
+    color: var(--text-primary);
+    margin-bottom: 26px;
+    line-height: 1.5;
+}
+
+.question b {
+    display: inline-block;
+    min-width: 46px;
+    padding: 4px 12px;
+    color: #fff;
+    background: rgba(0, 240, 255, 0.05);
+    border: 1px solid var(--accent-cyan);
+    border-radius: 6px;
+    font-size: 1.3rem;
+    box-shadow: 0 0 15px rgba(0, 240, 255, 0.2);
+}
+
+.buttons {
+    display: flex;
+    gap: 14px;
+    justify-content: center;
+    margin-bottom: 24px;
+}
+
+.buttons button {
+    flex: 1;
+    max-width: 160px;
+}
+
+/* Оформление второй кнопки ("Нет") как второстепенного действия */
+.buttons button:last-child {
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--text-primary);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: none;
+}
+
+.buttons button:last-child:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.25);
+    color: #fff;
+}
+
+a{
+    text-decoration: none;
+    color: black;
+}
+
+.history {
+    margin-top: 18px;
+    padding-top: 18px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    max-height: 180px;
+    overflow-y: auto;
+    line-height: 1.7;
+}
+
+/* Кастомный скроллбар терминала */
+.history::-webkit-scrollbar {
+    width: 4px;
+}
+.history::-webkit-scrollbar-track {
+    background: transparent;
+}
+.history::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+}
+.history::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-cyan);
+}
+
+.history div {
+    padding: 2px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+#result {
+    margin-top: 20px;
+}
+
+.found {
+    padding: 24px;
+    border: 1px solid var(--accent-cyan);
+    border-radius: 8px;
+    background: rgba(0, 240, 255, 0.02);
+    text-align: center;
+    box-shadow: 0 0 25px var(--accent-glow);
+    animation: reveal 0.6s ease;
+}
+
+@keyframes reveal {
+    from {
+        opacity: 0;
+        transform: scale(0.96);
+        filter: blur(4px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+        filter: blur(0);
+    }
+}
+
+        </style>
+    </head>
+    <body>
+        <main class="card">
+            <h1>Угадай ID</h1>
+            <p>
+                Загадайте любой <b>id</b> из таблицы <code>requests</code>. Я угадаю его за ~7
+                вопросов «больше / не больше».
+            </p>
+
+            <div id="start">
+                <button id="btnStart">Начать</button>
+            </div>
+
+            <div id="game" hidden>
+                <p class="progress">
+                    Шаг <span id="step">1</span>. Диапазон: [<span id="lo">?</span>,
+                    <span id="hi">?</span>]
+                </p>
+                <p class="question">Ваш id больше <b id="mid">?</b>?</p>
+                <div class="buttons">
+                    <button id="btnYes">Да</button>
+                    <button id="btnNo">Нет</button>
+                </div>
+                <div class="history" id="history"></div>
+            </div>
+                    <button>
+                        <a href="/"> 
+                            Открыть страницу регистрации
+                        </a>
+                    </button>
+            <div id="result"></div>
+        </main>
+
+        <script>
+            const $ = (id) => document.getElementById(id);
+
+            let lo = null,
+                hi = null,
+                mid = null,
+                steps = 0;
+
+            async function loadRange() {
+                const res = await fetch('/api/guess/range');
+                const data = await res.json();
+
+                if (!data.total || data.total === '0') {
+                    throw new Error('Таблица requests пуста — нечего угадывать');
+                }
+
+                lo = Number(data.min_id);
+                hi = Number(data.max_id);
+            }
+
+            function nextMid() {
+                return Math.floor((lo + hi) / 2);
+            }
+
+            function render() {
+                $('step').textContent = steps;
+                $('lo').textContent = lo;
+                $('hi').textContent = hi;
+                $('mid').textContent = mid;
+            }
+
+            function log(text) {
+                const el = $('history');
+                const line = document.createElement('div');
+                line.textContent = text;
+                el.appendChild(line);
+            }
+
+            async function finish() {
+                $('game').hidden = true;
+
+                try {
+                    const res = await fetch(`/api/guess/item?id=${mid}`);
+                    if (!res.ok) throw new Error('не найдено');
+
+                    const item = await res.json();
+
+                    $('result').innerHTML = `
+                    <div class="found">
+                        <div>Угадал за <b>${steps}</b> шагов. Ваш id = <b>${item.id}</b></div>
+                        <dl>
+                            <dt>ФИО</dt><dd>${escapeHtml(item.full_name)}</dd>
+                            <dt>Телефон</dt><dd>${escapeHtml(item.phone)}</dd>
+                            <dt>Email</dt><dd>${escapeHtml(item.email)}</dd>
+                            <dt>Сообщение</dt><dd>${escapeHtml(item.message)}</dd>
+                            <dt>Создано</dt><dd>${item.created_at}</dd>
+                        </dl>
+                        <button onclick="location.reload()">Ещё раз</button>
+                    </div>
+                `;
+                } catch (e) {
+                    $('result').innerHTML =
+                        `<p class="error">Ошибка загрузки записи: ${e.message}</p>`;
+                }
+            }
+
+            function escapeHtml(s) {
+                return String(s).replace(
+                    /[&<>"']/g,
+                    (c) =>
+                        ({
+                            '&': '&amp;',
+                            '<': '&lt;',
+                            '>': '&gt;',
+                            '"': '&quot;',
+                            "'": '&#39;',
+                        })[c],
+                );
+            }
+
+            function answerYes() {
+                // «Мой id больше mid»
+                log(`> ${mid} → да`);
+                lo = mid + 1;
+                step();
+            }
+
+            function answerNo() {
+                // «Мой id НЕ больше mid» → он меньше или равен mid
+                log(`> ${mid} → нет`);
+                hi = mid;
+                step();
+            }
+
+            function step() {
+                if (lo >= hi) {
+                    mid = lo; // единственный оставшийся кандидат
+                    finish();
+                    return;
+                }
+
+                mid = nextMid();
+                steps++;
+                render();
+            }
+
+            async function start() {
+                $('start').hidden = true;
+                $('game').hidden = false;
+                $('result').innerHTML = '';
+                $('history').innerHTML = '';
+
+                try {
+                    await loadRange();
+                } catch (e) {
+                    $('game').hidden = true;
+                    $('result').innerHTML = `<p class="error">${e.message}</p>`;
+                    return;
+                }
+
+                mid = nextMid();
+                steps = 1;
+                render();
+
+                $('btnYes').onclick = answerYes;
+                $('btnNo').onclick = answerNo;
+            }
+
+            $('btnStart').onclick = start;
+        </script>
+    </body>
+</html>
